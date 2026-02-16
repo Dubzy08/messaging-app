@@ -24,4 +24,4 @@ dist-ssr
 *.sw?
 
 # REST Requests
-.rest
+*.rest
