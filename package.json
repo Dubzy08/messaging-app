@@ -1,0 +1,29 @@
+{
+  "dependencies": {
+    "http": "^0.0.1-security"
+  },
+  "name": "live_message_app",
+  "version": "1.0.0",
+  "description": "Messaging app with user authentication",
+  "main": "index.js",
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "client": "npm start --prefix client",
+    "server": "npm start --prefix server",
+    "dev": "concurrently \"npm run server\" \"npm run client\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Dubzy08/messaging-app.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Dubzy08/messaging-app/issues"
+  },
+  "homepage": "https://github.com/Dubzy08/messaging-app#readme"
+}
