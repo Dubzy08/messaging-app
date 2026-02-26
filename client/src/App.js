@@ -3,6 +3,7 @@ import Header from "./pages/header/Header";
 import Login from "./pages/auth/Login";
 import Signup from "./pages/auth/Signup";
 import Dashboard from "./pages/dashboard/Dashboard";
+import Messenger from "./pages/dashboard/Messenger";
 
 function App() {
     return (
@@ -12,6 +13,7 @@ function App() {
                 <Route path='/login' element={<Login></Login>}></Route>
                 <Route path='/register' element={<Signup></Signup>}></Route>
                 <Route path='/dashboard' element={<Dashboard></Dashboard>}></Route>
+                <Route path='/messenger' element={<Messenger></Messenger>}></Route>
             </Routes>
         </>
     );
