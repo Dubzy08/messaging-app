@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import './Messenger.css';
+import socket from './socket.js';
 
 const COLORS = ["#e77c5e", "#5b8ef4", "#a85ef4", "#3ecf8e", "#f4b25b", "#f45b8e"];
 
@@ -42,24 +43,29 @@ export default function Messenger() {
   const typingTimeout = useRef(null);
 
   useEffect(() => {
+    socket.connect();
+
+    socket.on('message', message => {
+      console.log(message);
+    });    
+    
+    return () => {
+      socket.off("receive_message");
+      socket.disconnect();
+    };
+  }, []);
+
+  useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isTyping]);
 
   const handleSend = () => {
     if (!input.trim()) return;
     const newMsg = { id: Date.now(), from: "me", text: input.trim(), time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) };
-    setMessages(prev => [...prev, newMsg]);
+    
+    // Emit a message to the server
+    socket.emit('chatMessage', newMsg);
     setInput("");
-
-    // Simulate reply
-    setIsTyping(true);
-    clearTimeout(typingTimeout.current);
-    typingTimeout.current = setTimeout(() => {
-      const replies = ["Haha yes exactly!", "That's so true 😄", "Let me think about that...", "Okay sounds good!", "For sure! 🙌"];
-      const reply = { id: Date.now() + 1, from: "them", text: replies[Math.floor(Math.random() * replies.length)], time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) };
-      setIsTyping(false);
-      setMessages(prev => [...prev, reply]);
-    }, 1800);
   };
 
   const handleKey = (e) => {
