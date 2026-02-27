@@ -7,6 +7,7 @@ const cors = require('cors');
 const createAdminAccount = require('./src/scripts/admin');
 const socketio = require('socket.io');
 const http = require('http');
+const formatMessage = require('./src/utils/messages.js')
 
 const app = express();
 const server = http.createServer(app);
@@ -25,19 +26,28 @@ createAdminAccount();
 
 let connections = 0;
 
-io.on('connection', socket =>{
-    socket.emit('message', 'Welcome to weMessage!');
-    
+io.on('connection', socket => {
+    socket.emit('message', formatMessage(
+        username="server", 
+        text="Connected to chat"
+    ));
+
     // Broadcast when user connects
-    socket.broadcast.emit('message', 'A user has joined the chat');
+    socket.broadcast.emit('message', formatMessage(
+        username="server", 
+        text="New user joined"
+    ));
 
     // Run when client disconnects
-    socket.on('disconnect', () =>{
-        io.emit('message', 'User left the chat')
+    socket.on('disconnect', () => {
+        io.emit('message', formatMessage(
+            username="server", 
+            text="User left the chat"
+        ));
     })
 
     // Listen for chat message
-    socket.on('chatMessage', (message) =>{
+    socket.on('chatMessage', (message) => {
         io.emit('message', message);
     })
 });

@@ -346,7 +346,6 @@
 }
 
 .bubble {
-    max-width: 68%;
     padding: 10px 14px;
     border-radius: 18px;
     font-size: 14px;
@@ -368,7 +367,16 @@
     }
 }
 
-.bubble.them {
+.bubble.server {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    font-size: 12px;
+    text-align: left;
+    border-radius: 12px;
+}
+
+.bubble:not(.me) {
     background: var(--bubble-them);
     color: var(--text-primary);
     border-bottom-left-radius: 5px;
@@ -404,8 +412,16 @@
     font-family: 'DM Mono', monospace;
 }
 
+.msg-row.server {
+    justify-content: left;
+}
+
 .msg-row.me .msg-time {
     text-align: right;
+}
+
+.msg-element{
+    max-width: 60%;
 }
 
 /* REACTIONS */

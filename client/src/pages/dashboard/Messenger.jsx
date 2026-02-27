@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import './Messenger.css';
 import socket from './socket.js';
-
+import formatMessage from '../utils/messages.js';
 const COLORS = ["#e77c5e", "#5b8ef4", "#a85ef4", "#3ecf8e", "#f4b25b", "#f45b8e"];
 
 function AvatarEl({ name, size = 46, colorIdx = 0 }) {
@@ -23,19 +23,9 @@ const CONVERSATIONS = [
   { id: 6, name: "Camille Dubois", online: true, preview: "Thanks! 😊", time: "Mon", unread: 0 },
 ];
 
-const INITIAL_MESSAGES = [
-  { id: 1, from: "them", text: "Hey! Are you free this weekend?", time: "10:12 AM" },
-  { id: 2, from: "them", text: "We're planning a little get-together Saturday evening", time: "10:12 AM" },
-  { id: 3, from: "me", text: "Oh nice! What time were you thinking?", time: "10:15 AM" },
-  { id: 4, from: "me", text: "I might have something in the afternoon but evening should work", time: "10:15 AM" },
-  { id: 5, from: "them", text: "Around 7pm at my place 🎉", time: "10:18 AM", reaction: "🔥 120" },
-  { id: 6, from: "me", text: "Perfect, I'll be there!", time: "10:20 AM" },
-  { id: 7, from: "them", text: "Sounds good! See you then 👍", time: "10:21 AM" },
-];
-
 export default function Messenger() {
   const [activeConvo, setActiveConvo] = useState(0);
-  const [messages, setMessages] = useState(INITIAL_MESSAGES);
+  const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [search, setSearch] = useState("");
@@ -47,8 +37,9 @@ export default function Messenger() {
 
     socket.on('message', message => {
       console.log(message);
-    });    
-    
+      outputMessage(message);
+    });
+
     return () => {
       socket.off("receive_message");
       socket.disconnect();
@@ -61,12 +52,18 @@ export default function Messenger() {
 
   const handleSend = () => {
     if (!input.trim()) return;
-    const newMsg = { id: Date.now(), from: "me", text: input.trim(), time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) };
-    
+    const newMsg = formatMessage("me", input.trim())
+
     // Emit a message to the server
     socket.emit('chatMessage', newMsg);
     setInput("");
   };
+
+  const outputMessage = (message) =>{
+    setMessages(
+      prev => [...prev, message]
+    );
+  }
 
   const handleKey = (e) => {
     if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend(); }
@@ -165,8 +162,12 @@ export default function Messenger() {
                     <div className={`msg-avatar ${!msg.isLast ? "hidden" : ""}`}>
                       <AvatarEl name={active.name} size={28} colorIdx={activeConvo} />
                     </div>
+                  ) : msg.from === "server" ? (
+                    <div className="msg-avatar">
+                      <AvatarEl name="S V" size={28} colorIdx={5} />
+                    </div>
                   ) : null}
-                  <div>
+                  <div className="msg-element">
                     <div className={`bubble ${msg.from} ${msg.isFirst ? `first-${msg.from}` : ""} ${msg.isLast ? `last-${msg.from}` : ""}`}>
                       {msg.text}
                     </div>
