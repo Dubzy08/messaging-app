@@ -29,19 +29,15 @@ createAdminAccount();
 const serverName = "Chat Bot"
 
 io.on('connection', socket => {
-    
-    // Broadcast when user connects
-    socket.broadcast.emit('message', formatMessage(
-        username=serverName, 
-        text="New user joined"
-    ));
 
-    // Run when client disconnects
+    // Display added user to chat and modify conversation to group
+    socket.on('addUser', () => {
+
+    })
+
+    // Run when client is goes offline
     socket.on('disconnect', () => {
-        io.emit('message', formatMessage(
-            username=serverName, 
-            text="User left the chat"
-        ));
+
     })
 
     // Listen for chat message

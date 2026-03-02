@@ -5,7 +5,7 @@ import formatMessage from '../utils/messages.js';
 import { useNavigate } from "react-router-dom";
 const COLORS = ["#e77c5e", "#5b8ef4", "#a85ef4", "#3ecf8e", "#f4b25b", "#f45b8e"];
 
-function AvatarEl({ name, size = 46, color = "#90e2fd" }) {
+function AvatarEl({ name, size = 46, color = "#0083ae" }) {
   const initials = name.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase();
   const bg = color;
   return (
@@ -38,21 +38,29 @@ export default function Messenger() {
   const navigate = useNavigate();
   const token = sessionStorage.getItem('token');
   const activeUser = JSON.parse(sessionStorage.getItem('user'));
-  
+
+  useEffect(() => {
+    if (!token || token === "undefined")
+      navigate('/login');
+  }, [token, navigate])
+
   useEffect(() => {
     const loadConversations = async () => {
       try {
         const res = await fetch(`http://localhost:3000/messages/conversations/${activeUser.id}`)
         const dbConvos = await res.json();
-        setConversations([...dbConvos, ...CONVERSATIONS]);
+        const merged = [...dbConvos, ...CONVERSATIONS];
+        setConversations(merged);
+        setActiveConvo(merged[0]?._id);
       } catch (error) {
         console.error('Failed to load conversations:', error);
         setConversations(CONVERSATIONS)
+        setActiveConvo(CONVERSATIONS[0]?._id);
       }
     };
 
     loadConversations();
-  }, [activeUser.id])
+  }, [activeUser?.id])
 
   useEffect(() => {
     const loadMessages = async () => {
@@ -97,10 +105,7 @@ export default function Messenger() {
     setInput("");
   };
 
-  useEffect(() => {
-    if (!token || token === "undefined")
-      navigate('/login');
-  }, [token, navigate])
+  
 
   const outputMessage = (message) => {
     setMessages(
@@ -112,6 +117,10 @@ export default function Messenger() {
     if (convo.isGroup) return convo.groupName;
     const other = convo.participantData?.find(p => p._id !== activeUser);
     return other?.name || "Unknown";
+  }
+
+  const calculateUnreadTime = (convo) => {
+    
   }
 
   const handleKey = (e) => {
@@ -185,11 +194,11 @@ export default function Messenger() {
                 </div>
                 <div className="convo-info">
                   <div className="convo-top">
-                    <span className="convo-name">{c.id}</span>
+                    <span className="convo-name">{getConvoName(c, activeUser.id)}</span>
                     <span className="convo-time">{c.time}</span>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
-                    <span className="convo-preview">{c.preview}</span>
+                    <span className="convo-preview">{c.lastMessage?.text || c.preview}</span>
                     {c.unread > 0 && <span className="unread-badge">{c.unread}</span>}
                   </div>
                 </div>
