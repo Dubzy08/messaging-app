@@ -5,9 +5,9 @@ import formatMessage from '../utils/messages.js';
 import { useNavigate } from "react-router-dom";
 const COLORS = ["#e77c5e", "#5b8ef4", "#a85ef4", "#3ecf8e", "#f4b25b", "#f45b8e"];
 
-function AvatarEl({ name, size = 46, colorIdx = 0 }) {
+function AvatarEl({ name, size = 46, color = "#90e2fd" }) {
   const initials = name.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase();
-  const bg = COLORS[colorIdx % COLORS.length];
+  const bg = color;
   return (
     <div className="avatar-img" style={{ width: size, height: size, background: bg, fontSize: size * 0.35 }}>
       {initials}
@@ -16,16 +16,17 @@ function AvatarEl({ name, size = 46, colorIdx = 0 }) {
 }
 
 const CONVERSATIONS = [
-  { id: 1, name: "Sofia Laurent", online: true, preview: "Sounds good! See you then 👍", time: "2m", unread: 2 },
-  { id: 2, name: "James Park", online: true, preview: "Did you see the game last night?", time: "14m", unread: 0 },
-  { id: 3, name: "Ari & Friends", online: false, preview: "Maya: lmaooo no way", time: "1h", unread: 5, group: true },
-  { id: 4, name: "Yuki Tanaka", online: false, preview: "Let me know when you're free", time: "3h", unread: 0 },
-  { id: 5, name: "Dev Team", online: false, preview: "PR is ready for review", time: "Yesterday", unread: 0, group: true },
-  { id: 6, name: "Camille Dubois", online: true, preview: "Thanks! 😊", time: "Mon", unread: 0 },
+  { _id: '69a5d8bbbae0fd090c01a6d0', name: "Sofia Laurent", online: true, preview: "Sounds good! See you then 👍", time: "2m", unread: 2, color: COLORS[0] },
+  { _id: '69a5d8d66b18ebc44a008349', name: "James Park", online: true, preview: "Did you see the game last night?", time: "14m", unread: 0, color: COLORS[1] },
+  { _id: '69a5d8dfb8d3f7376199e794', name: "Ari & Friends", online: false, preview: "Maya: lmaooo no way", time: "1h", unread: 5, group: true, color: COLORS[2] },
+  { _id: '69a5d8e67bb8a3443e88332f', name: "Yuki Tanaka", online: false, preview: "Let me know when you're free", time: "3h", unread: 0, color: COLORS[3] },
+  { _id: '69a5d8ec2282c585693fc8de', name: "Dev Team", online: false, preview: "PR is ready for review", time: "Yesterday", unread: 0, group: true, color: COLORS[4] },
+  { _id: '69a5d8f2b09d0c55594d2682', name: "Camille Dubois", online: true, preview: "Thanks! 😊", time: "Mon", unread: 0, color: COLORS[5] },
 ];
 
 export default function Messenger() {
-  const [activeConvo, setActiveConvo] = useState(0);
+  const [conversations, setConversations] = useState([])
+  const [activeConvo, setActiveConvo] = useState(CONVERSATIONS[0]._id);
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
@@ -35,7 +36,39 @@ export default function Messenger() {
   const typingTimeout = useRef(null);
 
   const navigate = useNavigate();
-  const token = localStorage.getItem('token');
+  const token = sessionStorage.getItem('token');
+  const activeUser = JSON.parse(sessionStorage.getItem('user'));
+  
+  useEffect(() => {
+    const loadConversations = async () => {
+      try {
+        const res = await fetch(`http://localhost:3000/messages/conversations/${activeUser.id}`)
+        const dbConvos = await res.json();
+        setConversations([...dbConvos, ...CONVERSATIONS]);
+      } catch (error) {
+        console.error('Failed to load conversations:', error);
+        setConversations(CONVERSATIONS)
+      }
+    };
+
+    loadConversations();
+  }, [activeUser.id])
+
+  useEffect(() => {
+    const loadMessages = async () => {
+      try {
+        const res = await fetch(`http://localhost:3000/messages/messages/${activeConvo}`);
+        const data = await res.json();
+        setMessages(data);
+      } catch (error) {
+        console.error('Failed to load messages:', error);
+      }
+    };
+
+    if (activeConvo) {
+      loadMessages();
+    }
+  }, [activeConvo]);
 
   useEffect(() => {
     socket.connect();
@@ -57,7 +90,7 @@ export default function Messenger() {
 
   const handleSend = () => {
     if (!input.trim()) return;
-    const newMsg = formatMessage(conversationId="thisiid", from="userid", text=input.trim())
+    const newMsg = formatMessage(activeConvo, activeUser.id, input.trim());
 
     // Emit a message to the server
     socket.emit('chatMessage', newMsg);
@@ -65,7 +98,7 @@ export default function Messenger() {
   };
 
   useEffect(() => {
-    if (token === "undefined")
+    if (!token || token === "undefined")
       navigate('/login');
   }, [token, navigate])
 
@@ -75,19 +108,28 @@ export default function Messenger() {
     );
   }
 
+  const getConvoName = (convo, activeUser) => {
+    if (convo.isGroup) return convo.groupName;
+    const other = convo.participantData?.find(p => p._id !== activeUser);
+    return other?.name || "Unknown";
+  }
+
   const handleKey = (e) => {
     if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend(); }
   };
 
+  const handleActiveConvo = (convo) => {
+    setActiveConvo(convo._id);
+  }
+
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
+    sessionStorage.removeItem('token');
+    sessionStorage.removeItem('user');
     socket.disconnect();
     navigate('/login');
   }
 
-  const filtered = CONVERSATIONS.filter(c => c.name.toLowerCase().includes(search.toLowerCase()));
-  const active = CONVERSATIONS[activeConvo];
+  const active = CONVERSATIONS.find(c => c._id === activeConvo) || CONVERSATIONS[0];
 
   // Group consecutive messages from same sender
   const grouped = messages.map((msg, i) => {
@@ -135,15 +177,15 @@ export default function Messenger() {
           </div>
 
           <div className="convo-list">
-            {filtered.map((c, i) => (
-              <div key={c.id} className={`convo-item ${activeConvo === i ? "active" : ""}`} onClick={() => setActiveConvo(i)}>
+            {conversations.map((c, i) => (
+              <div key={c._id} className={`convo-item ${activeConvo === c.id ? "active" : ""}`} onClick={() => handleActiveConvo(c)}>
                 <div className="avatar">
-                  <AvatarEl name={c.name} size={46} colorIdx={i} />
+                  <AvatarEl name={getConvoName(c, activeUser.id)} size={46} color={c.color} />
                   <div className={`avatar-dot ${c.online ? "online" : "offline"}`} />
                 </div>
                 <div className="convo-info">
                   <div className="convo-top">
-                    <span className="convo-name">{c.name}</span>
+                    <span className="convo-name">{c.id}</span>
                     <span className="convo-time">{c.time}</span>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
@@ -160,7 +202,7 @@ export default function Messenger() {
         <div className="chat-area">
           <div className="chat-header">
             <div className="avatar">
-              <AvatarEl name={active.name} size={40} colorIdx={activeConvo} />
+              <AvatarEl name={active.name} size={40} color={active.color} />
               <div className={`avatar-dot ${active.online ? "online" : "offline"}`} style={{ borderColor: 'var(--bg)' }} />
             </div>
             <div className="chat-header-info">

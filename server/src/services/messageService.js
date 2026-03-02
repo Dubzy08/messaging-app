@@ -1,8 +1,26 @@
 const { Conversation, Message } = require('../models/messageModels');
+const mongoose = require('mongoose');
 
 async function getConversations(userId) {
-    const conversations = await Conversation.find({ participants: userId })
-    return conversations;
+    return await Conversation.aggregate([
+        { $match: { participants: new mongoose.Types.ObjectId(userId) } },
+        {
+            $lookup: {
+                from: 'users',
+                localField: 'participants',
+                foreignField: '_id',
+                as: 'participantData'
+            }
+        },
+        {
+            $addFields: {
+                sortDate: {
+                    $ifNull: ['$lastMessage.time', '$createdAt']
+                }
+            }
+        },
+        { $sort: { sortDate: -1 } }
+    ]);
 }
 
 async function findExistingDm(userId_a, userId_b) {

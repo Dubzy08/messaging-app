@@ -5,11 +5,11 @@ import './Header.css';
 
 const Header = () => {
     
-    const token = localStorage.getItem('token');
+    const token = sessionStorage.getItem('token');
     const navigate = useNavigate();
 
     const handleLogout = () =>{
-        localStorage.removeItem('token');
+        sessionStorage.removeItem('token');
         navigate('/login');
     }
 

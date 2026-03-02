@@ -6,7 +6,7 @@ const Dashboard = () => {
 
     const navigate = useNavigate();
 
-    const token = localStorage.getItem('token');
+    const token = sessionStorage.getItem('token');
     const [users, setUsers] = useState([]);
 
     useEffect(() => {

@@ -29,11 +29,7 @@ createAdminAccount();
 const serverName = "Chat Bot"
 
 io.on('connection', socket => {
-    socket.emit('message', formatMessage(
-        username=serverName, 
-        text="Connected to chat"
-    ));
-
+    
     // Broadcast when user connects
     socket.broadcast.emit('message', formatMessage(
         username=serverName, 
