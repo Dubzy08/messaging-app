@@ -14,7 +14,8 @@ async function login(email, password){
             throw new Error('Incorrect password')
         }
         const token = generateToken(existingUser);
-        return token;
+        const { password:_ , ...rest } = existingUser.toObject();
+        return {token, user: rest};
     } catch (error) {
         throw new Error('Invalid credentials')
     }

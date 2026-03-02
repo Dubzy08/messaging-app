@@ -38,6 +38,43 @@
     -webkit-text-fill-color: transparent;
 }
 
+.settings-dropdown {
+    position: absolute;
+    top: 44px;
+    right: 0;
+    background: var(--sidebar-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 6px;
+    z-index: 100;
+    min-width: 130px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+}
+
+.settings-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    padding: 8px 10px;
+    border: none;
+    background: none;
+    color: var(--text-primary);
+    font-size: 13px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.settings-item:hover {
+    background: var(--hover);
+}
+
+.settings-item.logout:hover {
+    background: rgba(231, 76, 60, 0.15);
+    color: #e74c3c;
+}
+
 .search-bar {
     display: flex;
     align-items: center;

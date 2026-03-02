@@ -30,8 +30,13 @@ function Login() {
                 body: JSON.stringify(formData)
             });
             const result = await response.json();
+            const user = result.user;
             localStorage.setItem('token', result.token);
             console.log(result);
+            localStorage.setItem('user', JSON.stringify({
+                id: user._id,
+                user: user.name
+            }));
             navigate('/messenger');
         } catch (error) {
             console.error(error.message);

@@ -1,11 +1,10 @@
-import moment from 'moment';
 
-function formatMessage(username, message) {
+function formatMessage(conversationId, from, text) {
     return {
-        id: Date.now(),
-        from: username,
-        text: message,
-        time: moment().format('h:mm a')
+        conversationId: conversationId,
+        from: from,
+        text: text,
+        time: Date.now()
     }
 } 
 

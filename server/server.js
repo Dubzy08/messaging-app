@@ -2,12 +2,14 @@ const express = require('express');
 const signupRoute = require('./src/routes/signup');
 const loginRoute = require('./src/routes/login');
 const userRoute = require('./src/routes/user');
+const messageRoute = require('./src/routes/messageRoute.js');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const createAdminAccount = require('./src/scripts/admin');
 const socketio = require('socket.io');
 const http = require('http');
-const formatMessage = require('./src/utils/messages.js')
+const formatMessage = require('./src/utils/messages.js');
+const { createMessage } = require('./src/services/messageService.js');
 
 const app = express();
 const server = http.createServer(app);
@@ -47,7 +49,8 @@ io.on('connection', socket => {
     })
 
     // Listen for chat message
-    socket.on('chatMessage', (message) => {
+    socket.on('chatMessage', async (message) => {
+        await createMessage(message.conversationId, message.from, message.text)
         io.emit('message', message);
     })
 });
@@ -55,6 +58,7 @@ io.on('connection', socket => {
 app.use('/user', signupRoute);
 app.use('/auth', loginRoute);
 app.use('/api', userRoute);
+app.use('/messages', messageRoute);
 
 const PORT = 3000 || process.env.PORT;
 
