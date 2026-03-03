@@ -351,14 +351,14 @@
 }
 
 .msg-group {
-    margin: 6px 0;
+    margin: 1px 0;
 }
 
 .msg-row {
     display: flex;
     align-items: flex-end;
     gap: 8px;
-    margin-bottom: 2px;
+    margin-bottom: 1px;
 }
 
 .msg-row.me {
@@ -417,12 +417,14 @@
     background: var(--bubble-them);
     color: var(--text-primary);
     border-bottom-left-radius: 5px;
+    border-top-left-radius: 5px;
 }
 
 .bubble.me {
     background: var(--bubble-me);
     color: #fff;
     border-bottom-right-radius: 5px;
+    border-top-right-radius: 5px;
 }
 
 .bubble.first-them {
@@ -430,7 +432,7 @@
 }
 
 .bubble.last-them {
-    border-bottom-left-radius: 5px;
+    border-bottom-left-radius: 18px;
 }
 
 .bubble.first-me {
@@ -438,7 +440,7 @@
 }
 
 .bubble.last-me {
-    border-bottom-right-radius: 5px;
+    border-bottom-right-radius: 18px;
 }
 
 .msg-time {

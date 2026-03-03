@@ -79,6 +79,12 @@ export default function Messenger() {
   }, [activeConvo]);
 
   useEffect(() => {
+    const outputMessage = (message) => {
+      setMessages(
+        prev => [...prev, message]
+      );
+    }
+
     socket.connect();
 
     socket.on('message', message => {
@@ -91,7 +97,7 @@ export default function Messenger() {
       socket.disconnect();
     };
   }, []);
-
+  
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isTyping]);
@@ -105,14 +111,6 @@ export default function Messenger() {
     setInput("");
   };
 
-  
-
-  const outputMessage = (message) => {
-    setMessages(
-      prev => [...prev, message]
-    );
-  }
-
   const getConvoName = (convo, activeUser) => {
     if (convo.isGroup) return convo.groupName;
     const other = convo.participantData?.find(p => p._id !== activeUser);
@@ -120,7 +118,7 @@ export default function Messenger() {
   }
 
   const calculateUnreadTime = (convo) => {
-    
+
   }
 
   const handleKey = (e) => {
@@ -144,10 +142,17 @@ export default function Messenger() {
   const grouped = messages.map((msg, i) => {
     const prev = messages[i - 1];
     const next = messages[i + 1];
+    
+    const sameGroupPrev = prev && prev.from === msg.from && 
+    (new Date(msg.time) - new Date(prev.time)) < 5 * 60 * 1000;
+
+    const sameGroupNext = next && next.from === msg.from && 
+      (new Date(next.time) - new Date(msg.time)) < 5 * 60 * 1000;
+
     return {
       ...msg,
-      isFirst: !prev || prev.from !== msg.from,
-      isLast: !next || next.from !== msg.from,
+      isFirst: !sameGroupPrev,
+      isLast: !sameGroupNext,
     };
   });
 
@@ -242,34 +247,43 @@ export default function Messenger() {
           <div className="messages-container">
             <div className="date-divider"><span>TODAY</span></div>
 
-            {grouped.map((msg) => (
-              <div key={msg.id} className="msg-group">
-                <div className={`msg-row ${msg.from}`}>
-                  {msg.from === "them" ? (
-                    <div className={`msg-avatar ${!msg.isLast ? "hidden" : ""}`}>
-                      <AvatarEl name={active.name} size={28} colorIdx={activeConvo} />
-                    </div>
-                  ) : msg.from !== "me" ? (
-                    <div className="msg-avatar">
-                      <AvatarEl name={msg.from} size={28} colorIdx={5} />
-                    </div>
-                  ) : null}
-                  <div className="msg-element">
-                    <div className={`bubble ${msg.from} ${msg.isFirst ? `first-${msg.from}` : ""} ${msg.isLast ? `last-${msg.from}` : ""}`}>
-                      {msg.text}
-                    </div>
-                    {msg.reaction && (
-                      <div><span className="reaction">{msg.reaction}</span></div>
+            {grouped.map((msg) => {
+              const isMe = msg.from === activeUser.id;
+
+              return (
+                <div key={msg.id} className="msg-group">
+                  <div className={`msg-row ${isMe ? "me" : "them"}`}>
+
+                    {/* Avatar: only for others, only on last bubble */}
+                    {!isMe && (
+                      <div className={`msg-avatar ${!msg.isLast ? "hidden" : ""}`}>
+                        <AvatarEl name={active.name} size={28} colorIdx={activeConvo} />
+                      </div>
                     )}
+
+                    <div className="msg-element">
+                      <div className={`bubble ${isMe ? "me" : ""} ${msg.isFirst ? `first-${isMe ? "me" : "them"}` : ""} ${msg.isLast ? `last-${isMe ? "me" : "them"}` : ""}`}>
+                        {msg.text}
+                      </div>
+                      {msg.reaction && (
+                        <div><span className="reaction">{msg.reaction}</span></div>
+                      )}
+                    </div>
+
                   </div>
+
+                  {msg.isLast && (
+                    <div className="msg-time" style={{
+                      paddingLeft: !isMe ? 44 : 0,
+                      textAlign: isMe ? "right" : "left"
+                    }}>
+                      {new Date(msg.time).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}<span> </span>
+                      {new Date(msg.time).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })}
+                    </div>
+                  )}
                 </div>
-                {msg.isLast && (
-                  <div className="msg-time" style={{ paddingLeft: msg.from === "them" ? 44 : 0, textAlign: msg.from === "me" ? "right" : "left" }}>
-                    {msg.time}
-                  </div>
-                )}
-              </div>
-            ))}
+              );
+            })}
 
             {isTyping && (
               <div className="msg-row them">

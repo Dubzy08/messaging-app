@@ -4,7 +4,7 @@ function formatMessage(conversationId, from, text) {
         conversationId: conversationId,
         from: from,
         text: text,
-        time: Date.now()
+        time: Date()
     }
 } 
 
