@@ -8,8 +8,7 @@ function SearchBar({ onSelectUser }) {
     const [focused, setFocused] = useState(false);
     const [searchResults, setSearchResults] = useState([]);
     const searchTimeout = useRef(null);
-    const apiUrl = "http://localhost:3000";
-    // const apiUrl = import.meta.env.VITE_WEMESSAGE_API_URL;
+    const apiUrl = import.meta.env.VITE_WEMESSAGE_API_URL;
 
     const handleSearch = (e) => {
         const value = e.target.value;
